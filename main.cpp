@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cmath>
 #include <thread>
+#include <iomanip>
 
 double de_jong(double x1, double x2) {
     double res = 0.002;
@@ -52,19 +53,19 @@ int main() {
         t3.join();
 
         int_curr = i1 + i2 + i3 + int_prev / 4;
-        std::cout << int_curr << std::endl;
+        std::cout << std::setprecision(12) << int_curr << std::endl;
         n *= 2;
 
-        double err = abs(int_prev - int_curr)
+        double err = std::abs(int_prev - int_curr) / int_curr;
 
-        if (false){
+        if (err < 0.0001){
             break;
         }
 
         int_prev = int_curr;
     }
     std::cout << '\n';
-    std::cout << int_prev << std::endl;
+    std::cout << int_curr << std::endl;
 
     return 0;
 }
