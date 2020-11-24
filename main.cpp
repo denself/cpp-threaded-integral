@@ -1,74 +1,56 @@
 #include <iostream>
-#include <cmath>
-#include <thread>
-#include <iomanip>
-#include <vector>
+#include <fstream>
 #include "functions.h"
+#include "integral.h"
 
-double calculate_int(double(*f)(double, double), double x1_from, double x1_to, double x2_from, double x2_to,
-                   double n1, double n2, bool shift_x1, bool shift_x2){
-    double res = 0;
-    for (int ni = shift_x1; ni < n1; ni+=2) {
-        for (int nj = shift_x2; nj < n2; nj+=2) {
-            double x1 = x1_from + (x1_to - x1_from) * ni / n1;
-            double x2 = x2_from + (x2_to - x2_from) * nj / n2;
-            res += f(x1, x2) * (x1_to - x1_from) / n1 * (x2_to - x2_from) / n2;
-        }
+
+int main(int argc, char ** argv) {
+
+    if (argc != 2) {
+        std::cout << "Incorrect number of arguments. Provide path to configuration file\n";
+        return 1;
     }
-    return res;
-}
+    auto file = std::ifstream(argv[1]);
+    if (!file) {
+        std::cout << "Incorrect path to config file. Provide a valid path\n";
+        return 1;
+    }
 
-void calculate_int_chunk(double(*f)(double, double), double x1_from, double x1_to, double x2_from, double x2_to,
-                         double n1, double n2, double& result) {
-
-    result = calculate_int(de_jong, x1_from, x1_to, x2_from, x2_to, n1, n2, true, false) +
-             calculate_int(de_jong, x1_from, x1_to, x2_from, x2_to, n1, n2, false, true) +
-             calculate_int(de_jong, x1_from, x1_to, x2_from, x2_to, n1, n2, true, true);
-}
-
-int main() {
-
-    double int_curr = 0;
     int n_threads = 4;
-    int n = n_threads;
 
     double x1_from = -50;
     double x1_to = 50;
     double x2_from = -50;
     double x2_to = 50;
+    double (*int_func)(double, double) = de_jong;
+    double expected_precision = 0.001;
+    double expected_precision_rel = 0.000001;
+    int max_iterations = 30;
 
-    double int_prev = calculate_int(de_jong, x1_from, x1_to, x2_from, x2_to, n, n, false, false) * 4;
-    for (int k = 0; k < 30; k++) {
-        std::vector<std::thread> threads;
-        std::vector<double> results(n_threads);
-        double result = 0;
-        for (int i = 0; i < n_threads; ++i){
-            double x2_from_i = (n_threads * x2_from + i * (x2_to - x2_from)) / n_threads;
-            double x2_to_i = (n_threads * x2_from + (i+1) * (x2_to - x2_from)) / n_threads;
-            std::thread thr(calculate_int_chunk, de_jong, x1_from, x1_to,
-                            x2_from_i, x2_to_i, n, n / n_threads, std::ref(results[i]));
-            threads.push_back(std::move(thr));
-        }
+    std::string skip;
+    file >> expected_precision;
+    std::getline(file, skip);
+    file >> expected_precision_rel;
+    std::getline(file, skip);
+    file >> n_threads;
+    std::getline(file, skip);
+    file >> x1_from;
+    std::getline(file, skip);
+    file >> x1_to;
+    std::getline(file, skip);
+    file >> x2_from;
+    std::getline(file, skip);
+    file >> x2_to;
+    std::getline(file, skip);
+    file >> max_iterations;
+    std::getline(file, skip);
 
-        for (int i = 0; i < n_threads; ++i){
-            threads[i].join();
-            result += results[i];
-        }
-
-        int_curr = result + int_prev / 4;
-        std::cout << std::setprecision(12) << int_curr << std::endl;
-        n *= 2;
-
-        double err = std::abs(int_prev - int_curr) / int_curr;
-
-        if (err < 0.000001){
-            break;
-        }
-
-        int_prev = int_curr;
-    }
+    auto int_curr = integrate(n_threads, int_func, x1_from, x1_to, x2_from, x2_to, expected_precision,
+                                expected_precision_rel, max_iterations);
     std::cout << '\n';
-    std::cout << int_curr << std::endl;
+    std::cout << int_curr.result << std::endl;
+    std::cout << "Precision: " << int_curr.precision << std::endl;
+    std::cout << "Relative:  " << int_curr.precision_rel << std::endl;
 
     return 0;
 }
