@@ -1,7 +1,9 @@
 #include <iostream>
 #include <fstream>
+#include <iomanip>
 #include "functions.h"
 #include "integral.h"
+#include "timeit.h"
 
 
 int main(int argc, char ** argv) {
@@ -45,12 +47,15 @@ int main(int argc, char ** argv) {
     file >> max_iterations;
     std::getline(file, skip);
 
+    auto stage1_start_time = get_current_time_fenced();
+
     auto int_curr = integrate(n_threads, int_func, x1_from, x1_to, x2_from, x2_to, expected_precision,
                                 expected_precision_rel, max_iterations);
-    std::cout << '\n';
-    std::cout << int_curr.result << std::endl;
-    std::cout << "Precision: " << int_curr.precision << std::endl;
-    std::cout << "Relative:  " << int_curr.precision_rel << std::endl;
+    auto finish_time = get_current_time_fenced();
+    std::cout << std::setprecision(12) << int_curr.result << std::endl;
+    std::cout << std::setprecision(12) << int_curr.precision << std::endl;
+    std::cout << std::setprecision(12) << int_curr.precision_rel << std::endl;
+    std::cout << std::setprecision(12) << to_us(finish_time - stage1_start_time) << std::endl;
 
     return 0;
 }

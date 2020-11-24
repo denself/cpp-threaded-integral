@@ -4,9 +4,14 @@
 #include <iostream>
 #include <cmath>
 #include <thread>
-#include <iomanip>
 #include <vector>
 #include "integral.h"
+
+#define DEBUG true
+
+#ifdef DEBUG
+#include "timeit.h"
+#endif
 
 double calculate_int(double(*f)(double, double), double x1_from, double x1_to, double x2_from, double x2_to,
                      double n1, double n2, bool shift_x1, bool shift_x2) {
@@ -37,6 +42,11 @@ IntegralStats integrate(int n_threads, double (*int_func)(double, double), doubl
     double precision_rel = 0;
     int n = n_threads;
     double int_prev = calculate_int(int_func, x1_from, x1_to, x2_from, x2_to, n, n, false, false) * 4;
+
+#ifdef DEBUG
+    auto start_time = get_current_time_fenced();
+#endif
+
     for (int k = 0; k < max_iterations; k++) {
         std::vector<std::thread> threads;
         std::vector<double> results(n_threads);
@@ -55,16 +65,22 @@ IntegralStats integrate(int n_threads, double (*int_func)(double, double), doubl
         }
 
         int_curr = result + int_prev / 4;
-        std::cout << std::setprecision(12) << int_curr << std::endl;
         n *= 2;
 
         precision = std::abs(int_prev - int_curr);
         precision_rel = precision / int_curr;
 
-        if (precision < expected_precision) {
-            break;
-        }
-        if (precision_rel < expected_precision_rel) {
+#ifdef DEBUG
+        auto step_time = get_current_time_fenced();
+        std::cerr << "Step:  " << k+1 << "\tResult: " << int_curr << "\t Precision: " << precision << "/" << precision_rel << "\n";
+        std::cerr << "Step time: " << to_us(step_time - start_time) << std::endl;
+        start_time = step_time;
+#endif
+
+        if ((precision < expected_precision) && (precision_rel < expected_precision_rel)) {
+#ifdef DEBUG
+            std::cerr << "Break due to precision requirements reached\n";
+#endif
             break;
         }
 
