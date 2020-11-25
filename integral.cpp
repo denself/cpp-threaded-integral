@@ -8,7 +8,7 @@
 #include <list>
 #include "integral.h"
 
-#define DEBUG true
+//#define DEBUG true
 
 #ifdef DEBUG
 
@@ -60,31 +60,19 @@ void calculate_int_c(double(*f)(double, double), double x1_from, double x1_to, d
     result = res;
 }
 
-//auto chunkIt(int l, int n) {
-//    float avg = float(l) / float(n);
-//    float last = 0;
-//    std::list<std::tuple<int, int>> result;
-//    while (last < float(l)) {
-//        if (int(last) < int(last + avg))
-//            result.emplace_back(int(last), int(last + avg));
-//        last += avg;
-//    }
-//    return result;
-//}
-
 auto chunkIt(int l, int n) {
     int k = l / n;
     int m = l % n;
     std::list<std::tuple<int, int>> result;
-    
-    for (int i = 0; i < n; ++i){
+
+    for (int i = 0; i < n; ++i) {
         int from = i * k + std::min(i, m);
         int to = (i + 1) * k + std::min(i + 1, m);
         if (from < to) {
             result.emplace_back(from, to);
         }
     }
-    
+
     return result;
 }
 
@@ -111,7 +99,7 @@ IntegralStats integrate(int n_threads, double (*int_func)(double, double), doubl
         std::vector<std::thread> threads;
         std::list<double> results;
 
-        for (auto [from, to]: chunkIt(n, n_threads)) {
+        for (auto[from, to]: chunkIt(n, n_threads)) {
             if (to > from) {
                 results.push_back(0);
                 std::thread thr(calculate_int_c, int_func, x1_from, x1_to, x2_from, x2_to, n,
