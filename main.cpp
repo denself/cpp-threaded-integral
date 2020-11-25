@@ -31,20 +31,44 @@ int main(int argc, char ** argv) {
 
     std::string skip;
     file >> expected_precision;
+    if (expected_precision <= 0) {
+        std::cout << "Precision must be grater then 0";
+        return 1;
+    }
     std::getline(file, skip);
     file >> expected_precision_rel;
+    if (expected_precision_rel <= 0) {
+        std::cout << "Relative precision must be grater then 0";
+        return 1;
+    }
     std::getline(file, skip);
     file >> n_threads;
+    if (n_threads <= 0) {
+        std::cout << "Number of threads must be grater then 0";
+        return 1;
+    }
     std::getline(file, skip);
     file >> x1_from;
     std::getline(file, skip);
     file >> x1_to;
+    if (x1_to <= x1_from) {
+        std::cout << "x1_from must be less then x1_to";
+        return 1;
+    }
     std::getline(file, skip);
     file >> x2_from;
     std::getline(file, skip);
     file >> x2_to;
+    if (x2_to <= x2_from) {
+        std::cout << "x2_from must be less then x2_to";
+        return 1;
+    }
     std::getline(file, skip);
     file >> max_iterations;
+    if (max_iterations <= 0) {
+        std::cout << "Maximum iterations must be grater then 0";
+        return 1;
+    }
     std::getline(file, skip);
 
     auto stage1_start_time = get_current_time_fenced();

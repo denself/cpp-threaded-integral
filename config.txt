@@ -1,8 +1,8 @@
-0.01      // expected precision
-0.00001   // expected relative precision
-2           // number of threads to run
+0.001       // expected precision
+0.00001     // expected relative precision
+13           // number of threads to run
 -50         // X1 integration interval
 50          // X1 integration interval
 -50         // X2 integration interval
 50          // X2 integration interval
-20          // max iterations
+10          // max iterations

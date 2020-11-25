@@ -1,5 +1,7 @@
 import subprocess
 import tempfile
+import time
+from itertools import chain
 
 import matplotlib.pyplot as plt
 
@@ -23,19 +25,22 @@ run_file = '../cmake-build-debug/ThreadedIntegral'
 
 if __name__ == '__main__':
     results = []
-    for n_threads in range(1, 16+1):
+    n_tests = 10
+    c = list(chain(range(1, 33)))
+    for n_threads in c:
         tem_res = []
-        for i in range(10):
+        for i in range(n_tests):
             with tempfile.NamedTemporaryFile('w') as f:
-                f.write(get_config_lines(n_threads=n_threads))
+                f.write(get_config_lines(n_threads=n_threads, max_iterations=10))
                 f.flush()
                 res = subprocess.run([run_file, f.name], capture_output=True)
-                _, _, _, time = map(float, res.stdout.split())
-                tem_res.append(time)
-                print("Iter", n_threads, i, time)
-        results.append(sum(tem_res) / 10.)
-        print("Mean", n_threads, results[-1])
+                _, _, _, t = map(float, res.stdout.split())
+                tem_res.append(t)
+                time.sleep(0.01)
+        results.append(min(tem_res))
+        print("Mean ", n_threads, " = ", results[-1])
 
-    plt.plot(range(16), results)
-    plt.ylabel('some numbers')
+    plt.plot(c, results)
+    plt.xlabel('Number of threads')
+    plt.ylabel('Median execution time (ns)')
     plt.show()

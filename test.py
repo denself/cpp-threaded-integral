@@ -38,7 +38,7 @@ class BaseTest(unittest.TestCase):
         results = []
         for i in range(10):
             with tempfile.NamedTemporaryFile('w') as f:
-                f.write(get_config_lines())
+                f.write(get_config_lines(n_threads=4))
                 f.flush()
                 res = subprocess.run([run_file, f.name], capture_output=True)
             res, precision, precision_rel, time = map(float, res.stdout.split())
@@ -46,6 +46,19 @@ class BaseTest(unittest.TestCase):
 
         for r in results[1:]:
             self.assertEqual(results[0], r)
+
+    def test_results_match_threads(self):
+        results = []
+        for i in range(16):
+            with tempfile.NamedTemporaryFile('w') as f:
+                f.write(get_config_lines(n_threads=i+1))
+                f.flush()
+                res = subprocess.run([run_file, f.name], capture_output=True)
+            res, precision, precision_rel, time = map(float, res.stdout.split())
+            results.append(res)
+
+        for i in range(1, 16):
+            self.assertEqual(results[0], results[i], f"Value for {i+1} threads doesn't match.")
 
 
 if __name__ == '__main__':
